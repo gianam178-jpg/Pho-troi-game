@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trò Chơi Phô Mai Tươi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { box-sizing: border-box; }
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        .bounce { animation: bounce 0.6s; }
+        .shake { animation: shake 0.5s; }
+        .correct { background: linear-gradient(135deg, #10b981, #34d399); }
+        .incorrect { background: linear-gradient(135deg, #ef4444, #f87171); }
+    </style>
+</head>
+<body class="min-h-full bg-gradient-to-br from-yellow-100 via-orange-50 to-pink-100">
+    <main class="container mx-auto px-4 py-8">
+        <header class="text-center mb-8">
+            <div class="text-6xl mb-4">🧀</div>
+            <h1 class="text-4xl font-bold text-orange-600 mb-2">Trò Chơi Phô Mai Tươi</h1>
+            <p class="text-lg text-gray-700">Kiểm tra kiến thức về cách làm phô mai tươi ngon!</p>
+        </header>
+
+        <div class="bg-white rounded-2xl shadow-lg p-6 mb-8 max-w-md mx-auto">
+            <div class="flex justify-between items-center">
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-green-600" id="correctScore">0</div>
+                    <div class="text-sm text-gray-600">Đúng ✅</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-orange-600" id="currentQuestion">1</div>
+                    <div class="text-sm text-gray-600">Câu hỏi</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-red-500" id="wrongScore">0</div>
+                    <div class="text-sm text-gray-600">Sai ❌</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="max-w-2xl mx-auto">
+            <div class="bg-white rounded-3xl shadow-xl p-8 mb-6" id="questionCard">
+                <div class="text-center mb-6">
+                    <div class="text-4xl mb-4" id="questionEmoji">🥛</div>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4" id="questionText">
+                        Nguyên liệu chính để làm phô mai tươi là sữa tươi?
+                    </h2>
+                </div>
+                <div class="flex gap-4 justify-center">
+                    <button onclick="answerQuestion(true)" class="bg-green-500 hover:bg-green-600 text-white font-bold py-4 px-8 rounded-2xl text-xl transition-all duration-200 transform hover:scale-105 shadow-lg" id="trueBtn">
+                        ✅ ĐÚNG
+                    </button>
+                    <button onclick="answerQuestion(false)" class="bg-red-500 hover:bg-red-600 text-white font-bold py-4 px-8 rounded-2xl text-xl transition-all duration-200 transform hover:scale-105 shadow-lg" id="falseBtn">
+                        ❌ SAI
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-lg p-6 mb-6 hidden" id="feedbackCard">
+                <div class="text-center">
+                    <div class="text-4xl mb-3" id="feedbackEmoji">🎉</div>
+                    <h3 class="text-xl font-bold mb-3" id="feedbackTitle">Chính xác!</h3>
+                    <p class="text-gray-700 mb-4" id="feedbackText"></p>
+                    <button onclick="nextQuestion()" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-xl transition-all duration-200" id="nextBtn">
+                        Câu tiếp theo 🚀
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-3xl shadow-xl p-8 text-center hidden" id="resultsCard">
+                <div class="text-6xl mb-4">🏆</div>
+                <h2 class="text-3xl font-bold text-orange-600 mb-4">Hoàn thành!</h2>
+                <div class="text-xl mb-6">
+                    <p>Bạn đã trả lời đúng <span class="font-bold text-green-600" id="finalScore">0</span>/10 câu!</p>
+                </div>
+                <div class="mb-6" id="finalMessage"></div>
+                <button onclick="restartGame()" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-8 rounded-xl text-lg transition-all duration-200">
+                    Chơi lại 🔄
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const questions = [
+            { text: "Nguyên liệu chính để làm phô mai tươi là sữa tươi?", answer: true, emoji: "🥛", explanation: "Đúng rồi! Sữa tươi là nguyên liệu chính và quan trọng nhất để làm phô mai tươi." },
+            { text: "Để làm phô mai tươi, ta cần đun sữa đến nhiệt độ sôi 100°C?", answer: false, emoji: "🌡️", explanation: "Sai rồi! Ta chỉ cần đun sữa đến khoảng 80-85°C, không cần sôi hoàn toàn." },
+            { text: "Giấm trắng hoặc nước cốt chanh được dùng để tạo acid giúp sữa đông tụ?", answer: true, emoji: "🍋", explanation: "Chính xác! Acid từ giấm hoặc chanh giúp protein trong sữa đông tụ thành phô mai." },
+            { text: "Sau khi thêm acid, ta cần khuấy mạnh liên tục để sữa đông nhanh?", answer: false, emoji: "🥄", explanation: "Sai rồi! Sau khi thêm acid, ta chỉ khuấy nhẹ 1-2 lần rồi để yên cho sữa tự đông." },
+            { text: "Thời gian để sữa đông tụ hoàn toàn thường là 10-15 phút?", answer: true, emoji: "⏰", explanation: "Đúng! Sau khi thêm acid, sữa sẽ đông tụ trong vòng 10-15 phút." },
+            { text: "Để lọc phô mai, ta cần dùng rây có lỗ to để nước whey chảy qua?", answer: false, emoji: "🔍", explanation: "Sai! Ta cần dùng rây mịn hoặc khăn vải sạch để giữ lại phô mai và lọc bỏ nước whey." },
+            { text: "Muối được thêm vào để tăng hương vị và bảo quản phô mai lâu hơn?", answer: true, emoji: "🧂", explanation: "Chính xác! Muối vừa tăng vị vừa giúp bảo quản phô mai tươi được lâu hơn." },
+            { text: "Phô mai tươi có thể bảo quản ở nhiệt độ phòng trong 1 tuần?", answer: false, emoji: "❄️", explanation: "Sai! Phô mai tươi cần bảo quản trong tủ lạnh và chỉ được 3-5 ngày." },
+            { text: "1 lít sữa tươi có thể làm ra khoảng 200-250g phô mai tươi?", answer: true, emoji: "⚖️", explanation: "Đúng! Tỷ lệ này phụ thuộc vào độ béo của sữa và kỹ thuật làm." },
+            { text: "Phô mai tươi tự làm có thể dùng ngay sau khi lọc xong?", answer: true, emoji: "🍽️", explanation: "Chính xác! Phô mai tươi có thể ăn ngay sau khi làm xong, không cần ủ lâu." }
+        ];
+
+        let currentQuestionIndex = 0;
+        let correctAnswers = 0;
+        let wrongAnswers = 0;
+
+        function answerQuestion(userAnswer) {
+            const question = questions[currentQuestionIndex];
+            const isCorrect = userAnswer === question.answer;
+            document.getElementById('trueBtn').disabled = true;
+            document.getElementById('falseBtn').disabled = true;
+            if (isCorrect) correctAnswers++; else wrongAnswers++;
+            document.getElementById('correctScore').textContent = correctAnswers;
+            document.getElementById('wrongScore').textContent = wrongAnswers;
+            showFeedback(isCorrect, question.explanation);
+        }
+
+        function showFeedback(isCorrect, explanation) {
+            const feedbackCard = document.getElementById('feedbackCard');
+            feedbackCard.classList.remove('hidden');
+            feedbackCard.classList.toggle('correct', isCorrect);
+            feedbackCard.classList.toggle('incorrect', !isCorrect);
+            document.getElementById('feedbackEmoji').textContent = isCorrect ? '🎉' : '😅';
+            document.getElementById('feedbackTitle').textContent = isCorrect ? 'Chính xác!' : 'Chưa đúng!';
+            document.getElementById('feedbackText').textContent = explanation;
+            if (currentQuestionIndex === questions.length - 1) document.getElementById('nextBtn').textContent = 'Xem kết quả 🏁';
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex >= questions.length) return showResults();
+            const q = questions[currentQuestionIndex];
+            document.getElementById('questionText').textContent = q.text;
+            document.getElementById('questionEmoji').textContent = q.emoji;
+            document.getElementById('currentQuestion').textContent = currentQuestionIndex + 1;
+            document.getElementById('trueBtn').disabled = false;
+            document.getElementById('falseBtn').disabled = false;
+            document.getElementById('feedbackCard').classList.add('hidden');
+        }
+
+        function showResults() {
+            document.getElementById('questionCard').classList.add('hidden');
+            document.getElementById('feedbackCard').classList.add('hidden');
+            const r = document.getElementById('resultsCard');
+            r.classList.remove('hidden');
+            document.getElementById('finalScore').textContent = correctAnswers;
+            let msg = correctAnswers >= 9 ? '🌟 Xuất sắc! Bạn là chuyên gia phô mai tươi thực thụ!' :
+                      correctAnswers >= 7 ? '👏 Tuyệt vời! Bạn đã nắm vững kiến thức về phô mai tươi!' :
+                      correctAnswers >= 5 ? '👍 Khá tốt! Hãy thử làm phô mai tươi thực tế nhé!' :
+                      '💪 Đừng lo! Hãy đọc thêm về cách làm phô mai tươi và thử lại!';
+            document.getElementById('finalMessage').innerHTML = `<p class="text-lg text-gray-700">${msg}</p>`;
+        }
+
+        function restartGame() {
+            currentQuestionIndex = 0;
+            correctAnswers = 0;
+            wrongAnswers = 0;
+            document.getElementById('questionCard').classList.remove('hidden');
+            document.getElementById('feedbackCard').classList.add('hidden');
+            document.getElementById('resultsCard').classList.add('hidden');
+            document.getElementById('correctScore').textContent = '0';
+            document.getElementById('wrongScore').textContent = '0';
+            document.getElementById('currentQuestion').textContent = '1';
+            const q = questions[0];
+            document.getElementById('questionText').textContent = q.text;
+            document.getElementById('questionEmoji').textContent = q.emoji;
+            document.getElementById('trueBtn').disabled = false;
+            document.getElementById('falseBtn').disabled = false;
+        }
+    </script>
+</body>
+</html>
